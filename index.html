@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Offline Personal Knowledge Base</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="logo">
+            Mini Notion
+        </div>
+
+        <div class="actions">
+            <button>Create Folder</button>
+            <button>Create Note</button>
+            <button>Rename</button>
+            <button>Delete</button>
+            <input type="text" placeholder="Search notes..." class="search-box">
+            <button>Export</button>
+            <button>Import</button>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                Folders
+            </div>
+            <ul class="tree">
+            <li class="folder">
+                <div class="item">
+                    <img src="assets/icons/folder.png" class="icon" alt="Folder Icon">
+                    <span>Programming</span>
+                </div>
+
+                <ul>
+                    <li class="note">
+                        <div class="item">
+                            <img src="assets/icons/note.png" class="icon" alt="Note Icon">
+                            <span>JavaScript Basics</span>
+                        </div>
+                    </li>
+
+                    <li class="note">
+                        <div class="item">
+                            <img src="assets/icons/note.png" class="icon" alt="Note Icon">
+                            <span>CSS Notes</span>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            </ul>
+        </aside>
+
+        <!-- Editor Panel -->
+        <main class="editor">
+
+            <input type="text" class="note-title" placeholder="Untitled Note">
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <button>B</button>
+                <button>I</button>
+                <button>H1</button>
+                <button>• List</button>
+                <button>Link</button>
+            </div>
+
+            <!-- Editable Area -->
+            <div class="editor-content" contenteditable="true">
+                Start writing your note here...
+            </div>
+
+            <div class="timestamp">
+                Last edited: --
+            </div>
+
+        </main>
+
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

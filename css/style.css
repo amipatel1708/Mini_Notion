@@ -1,0 +1,163 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background-color: #f4f6f9;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Top Bar */
+.topbar {
+    height: 60px;
+    background-color: #1f2937;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.logo {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.actions button {
+    padding: 6px 12px;
+    border: none;
+    cursor: pointer;
+    background-color: #374151;
+    color: white;
+    border-radius: 4px;
+}
+
+.actions button:hover {
+    background-color: #4b5563;
+}
+
+.search-box {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: none;
+}
+
+/* Layout */
+.container {
+    flex: 1;
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: #e5e7eb;
+    padding: 15px;
+    overflow-y: auto;
+    border-right: 1px solid #d1d5db;
+}
+
+.sidebar-header {
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.tree {
+    list-style: none;
+}
+
+.tree li {
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.tree ul {
+    list-style: none;
+    padding-left: 20px;
+    margin-top: 5px;
+}
+
+.folder {
+    font-weight: bold;
+}
+
+.note {
+    font-weight: normal;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon {
+    width: 18px;
+    height: 18px;
+}
+
+.item:hover {
+    background-color: #d1d5db;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+/* Editor */
+.editor {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+
+.note-title {
+    font-size: 20px;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.toolbar button {
+    padding: 5px 10px;
+    cursor: pointer;
+    border: 1px solid #d1d5db;
+    background-color: #f9fafb;
+    border-radius: 4px;
+}
+
+.toolbar button:hover {
+    background-color: #e5e7eb;
+}
+
+.editor-content {
+    flex: 1;
+    border: 1px solid #d1d5db;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-y: auto;
+}
+
+.timestamp {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #6b7280;
+}
