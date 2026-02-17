@@ -42,19 +42,44 @@
 
             <!-- Toolbar -->
             <div class="toolbar">
-                <button>B</button>
-                <button>I</button>
-                <button>H1</button>
-                <button>• List</button>
-                <button>Link</button>
+
+                <!-- Text Style -->
+                <button data-command="bold" title="Bold (Ctrl+B)">Bold</button>
+                <button data-command="italic" title="Italic (Ctrl+I)">Italic</button>
+                <button data-command="underline" title="Underline">Underline</button>
+                <div class="toolbar-divider"></div>
+                <select id="headingSelect" class="heading-select" title="Heading">
+                    <option value="p">Paragraph</option>
+                    <option value="h1">Heading 1</option>
+                    <option value="h2">Heading 2</option>
+                    <option value="h3">Heading 3</option>
+                    <option value="h4">Heading 4</option>
+                    <option value="h5">Heading 5</option>
+                    <option value="h6">Heading 6</option>
+                </select>
+                <div class="toolbar-divider"></div>
+                <button data-command="insertUnorderedList" title="Bullet List">Bullet List</button>
+                <button data-command="insertOrderedList" title="Numbered List">Numbered List</button>
+                <div class="toolbar-divider"></div>
+                <button data-command="formatBlock" data-value="blockquote" title="Quote">Quote</button>
+                <button data-command="formatBlock" data-value="pre" title="Code Block">Code Block</button>
+                <div class="toolbar-divider"></div>
+                <button data-command="justifyLeft" title="Align Left">Align Left</button>
+                <button data-command="justifyCenter" title="Align Center">Align Center</button>
+                <button data-command="justifyRight" title="Align Right">Align Right</button>
+                <div class="toolbar-divider"></div>
+                <button id="linkBtn" title="Insert Link">Insert Link</button>
+                <button data-command="removeFormat" title="Clear Formatting">Clear Format</button>
+
             </div>
 
             <!-- Editable Area -->
             <div id="editorContent" class="editor-content" contenteditable="true"></div>
 
             <!-- Timestamp -->
-            <div id="timestamp" class="timestamp">
-                Last edited: --
+            <div class="timestamp">
+                <span id="saveStatus">Saved</span> |
+                <span id="timestamp">Last edited: --</span>
             </div>
 
         </main>

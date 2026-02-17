@@ -120,10 +120,10 @@ body {
 }
 
 .folder .item.active {
-    background-color: #93c5fd;
-    color: #1e3a8a;
+    background-color: #354b64;
+    color: #fff;
     font-weight: 700;
-    border-left: 4px solid #2563eb;
+    border-left: 4px solid #111827;
 }
 
 .note {
@@ -131,9 +131,10 @@ body {
 }
 
 .note .item.active {
-    background-color: #cce5ff;
-    font-weight: 600;
-    border-left: 4px solid #3b82f6;
+    color: #fff;
+    background-color: #4f5c7a;
+    font-weight: 500;
+    border-left: 4px solid #232c40;
 }
 
 .icon {
@@ -167,22 +168,72 @@ body {
 
 .toolbar {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    gap: 6px;
     margin-bottom: 12px;
+    padding: 8px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    flex-wrap: wrap;
 }
 
 .toolbar button {
-    padding: 6px 12px;
-    cursor: pointer;
+    padding: 6px 10px;
+    min-height: 34px;
     border: 1px solid #d1d5db;
-    background-color: #f9fafb;
+    background: white;
     border-radius: 6px;
-    transition: 0.2s;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
 }
 
 .toolbar button:hover {
-    background-color: #e5e7eb;
-    transform: translateY(-2px);
+    background: #e5e7eb;
+}
+
+.toolbar button.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 22px;
+    background: #d1d5db;
+    margin: 0 4px;
+}
+
+.heading-select {
+    height: 34px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: white;
+    cursor: pointer;
+}
+
+.heading-select:hover {
+    background: #e5e7eb;
+}
+
+.editor-content blockquote {
+    border-left: 4px solid #2563eb;
+    padding-left: 12px;
+    color: #4b5563;
+    margin: 8px 0;
+    font-style: italic;
+}
+
+.editor-content pre {
+    background: #111827;
+    color: #f3f4f6;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: monospace;
 }
 
 .editor-content {
@@ -238,4 +289,8 @@ body {
 .sidebar::-webkit-scrollbar-thumb:hover,
 .editor-content::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+.editor-content a {
+    cursor: pointer;
 }

@@ -1,3 +1,16 @@
+let appState = {
+    root: null,
+    selectedFolderId: null,
+    selectedNoteId: null
+};
+
+let saveTimeout = null;
+
+function debounceSave(callback, delay = 500) {
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(callback, delay);
+}
+
 const sidebarTree = document.getElementById("sidebarTree");
 const createFolderBtn = document.getElementById("createFolderBtn");
 const createNoteBtn = document.getElementById("createNoteBtn");
@@ -7,14 +20,147 @@ const timestampDisplay = document.getElementById("timestamp");
 const deleteBtn = document.getElementById("deleteBtn");
 const renameBtn = document.getElementById("renameBtn");
 const searchInput = document.querySelector(".search-box");
-
-let appState = {
-    root: null,
-    selectedFolderId: null,
-    selectedNoteId: null
-};
+const toolbarButtons = document.querySelectorAll(".toolbar button");
+const linkBtn = document.getElementById("linkBtn");
+const saveStatus = document.getElementById("saveStatus");
+const headingSelect = document.getElementById("headingSelect");
 
 const STORAGE_KEY = "miniNotionData";
+
+editorContent.addEventListener("click", function (e) {
+
+    if (!appState.selectedNoteId) return;
+
+    const anchor = e.target.closest("a");
+
+    if (anchor) {
+        e.preventDefault();
+        window.open(anchor.href, "_blank");
+    }
+});
+
+toolbarButtons.forEach(button => {
+    button.addEventListener("click", function () {
+
+        if (!appState.selectedNoteId) return;
+
+        const command = this.dataset.command;
+        const value = this.dataset.value;
+
+        if (command === "removeFormat") {
+
+            document.execCommand("removeFormat", false, null);
+
+            document.execCommand("formatBlock", false, "p");
+
+            document.execCommand("justifyLeft", false, null);
+
+            editorContent.focus();
+            updateToolbarState();
+            return;
+        }
+
+        if (command === "formatBlock") {
+            document.execCommand(command, false, value);
+        } else {
+            document.execCommand(command, false, null);
+        }
+
+        editorContent.focus();
+        updateToolbarState();
+    });
+});
+
+
+headingSelect.addEventListener("change", function () {
+    if (!appState.selectedNoteId) return;
+
+    const tag = this.value;
+
+    if (tag === "p") {
+        document.execCommand("formatBlock", false, "p");
+    } else {
+        document.execCommand("formatBlock", false, tag);
+    }
+
+    editorContent.focus();
+});
+
+linkBtn.addEventListener("click", function () {
+
+    if (!appState.selectedNoteId) return;
+
+    const url = prompt("Enter URL:");
+    if (!url) return;
+
+    document.execCommand("createLink", false, url);
+});
+
+function updateToolbarState() {
+
+    if (!appState.selectedNoteId) {
+        toolbarButtons.forEach(button => {
+            button.classList.remove("active");
+        });
+
+        if (headingSelect) {
+            headingSelect.value = "p";
+        }
+
+        return;
+    }
+
+    toolbarButtons.forEach(button => {
+        button.classList.remove("active");
+    });
+
+    if (document.queryCommandState("bold")) {
+        document.querySelector('[data-command="bold"]')?.classList.add("active");
+    }
+
+    if (document.queryCommandState("italic")) {
+        document.querySelector('[data-command="italic"]')?.classList.add("active");
+    }
+
+    if (document.queryCommandState("insertUnorderedList")) {
+        document.querySelector('[data-command="insertUnorderedList"]')?.classList.add("active");
+    }
+
+    if (document.queryCommandState("underline")) {
+    document.querySelector('[data-command="underline"]')?.classList.add("active");
+    }
+
+    if (document.queryCommandState("insertOrderedList")) {
+        document.querySelector('[data-command="insertOrderedList"]')?.classList.add("active");
+    }
+
+    const currentBlock = document.queryCommandValue("formatBlock");
+
+    if (currentBlock) {
+
+        const normalizedBlock = currentBlock.toLowerCase();
+
+        toolbarButtons.forEach(button => {
+            if (
+                button.dataset.command === "formatBlock" &&
+                button.dataset.value === normalizedBlock
+            ) {
+                button.classList.add("active");
+            }
+        });
+
+        if (headingSelect) {
+
+            const allowedTags = ["p", "h1", "h2", "h3", "h4", "h5", "h6"];
+
+            if (allowedTags.includes(normalizedBlock)) {
+                headingSelect.value = normalizedBlock;
+            } else {
+                headingSelect.value = "p";
+            }
+        }
+    }
+}
 
 // Generate Unique ID
 function generateId() {
@@ -187,6 +333,8 @@ function renderTree(folder, parentElement, searchTerm = "") {
 function openNote(note) {
     appState.selectedNoteId = note.id;
 
+    editorContent.contentEditable = "true";
+    noteTitleInput.disabled = false;
     noteTitleInput.value = note.title;
     editorContent.innerHTML = note.content;
 
@@ -271,8 +419,11 @@ function deleteItem() {
     }
 
     noteTitleInput.value = "";
-    editorContent.innerHTML = "";
     timestampDisplay.textContent = "Last edited: --";
+
+    editorContent.contentEditable = "false";
+    noteTitleInput.disabled = true;
+    editorContent.innerHTML ="<p style='color:#9ca3af;'>Select or create a note to start writing...</p>";
 
     saveAppState();
     renderSidebar();
@@ -356,34 +507,53 @@ noteTitleInput.addEventListener("input", function () {
 
     if (!appState.selectedNoteId) return;
 
-    const note = findNoteById(appState.root, appState.selectedNoteId);
-    if (!note) return;
+    saveStatus.textContent = "Saving...";
+    debounceSave(() => {
 
-    note.title = noteTitleInput.value;
-    note.lastEdited = new Date().toISOString();
+        const note = findNoteById(appState.root, appState.selectedNoteId);
+        if (!note) return;
 
-    saveAppState();
-    renderSidebar();
+        note.title = noteTitleInput.value;
+        note.lastEdited = new Date().toISOString();
 
-    timestampDisplay.textContent =
-        "Last edited: " + new Date(note.lastEdited).toLocaleString();
+        saveAppState();
+        renderSidebar();
+
+        timestampDisplay.textContent =
+            "Last edited: " + new Date(note.lastEdited).toLocaleString();
+
+        saveStatus.textContent = "Saved";
+    });
 });
 
 editorContent.addEventListener("input", function () {
 
     if (!appState.selectedNoteId) return;
 
-    const note = findNoteById(appState.root, appState.selectedNoteId);
-    if (!note) return;
+    saveStatus.textContent = "Saving...";
+    debounceSave(() => {
 
-    note.content = editorContent.innerHTML;
-    note.lastEdited = new Date().toISOString();
+        const note = findNoteById(appState.root, appState.selectedNoteId);
+        if (!note) return;
 
-    saveAppState();
+        note.content = editorContent.innerHTML;
+        note.lastEdited = new Date().toISOString();
 
-    timestampDisplay.textContent =
-        "Last edited: " + new Date(note.lastEdited).toLocaleString();
+        saveAppState();
+
+        timestampDisplay.textContent =
+            "Last edited: " + new Date(note.lastEdited).toLocaleString();
+        saveStatus.textContent = "Saved";
+    });
 });
+editorContent.addEventListener("keyup", updateToolbarState);
+editorContent.addEventListener("mouseup", updateToolbarState);
+document.addEventListener("selectionchange", function () {
+    if (document.activeElement === editorContent) {
+        updateToolbarState();
+    }
+});
+
 
 searchInput.addEventListener("input", function () {
 
@@ -405,6 +575,11 @@ function initializeApp() {
     if (appState.selectedNoteId) {
         const note = findNoteById(appState.root, appState.selectedNoteId);
         if (note) openNote(note);
+    } else {
+        editorContent.innerHTML =
+            "<p style='color:#9ca3af;'>Select or create a note to start writing...</p>";
+        editorContent.contentEditable = "false";
+        noteTitleInput.disabled = true;
     }
 
     console.log("App Initialized:", appState);
