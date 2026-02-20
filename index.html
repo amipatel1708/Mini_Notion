@@ -9,9 +9,7 @@
 
     <!-- Top Bar -->
     <header class="topbar">
-        <div class="logo">
-            Mini Notion
-        </div>
+        <div class="logo">Mini Notion</div>
 
         <div class="actions">
             <button id="createFolderBtn">Create Folder</button>
@@ -24,31 +22,30 @@
         </div>
     </header>
 
-    <!-- Main Layout -->
-    <div class="container">
-        <!-- Sidebar -->
+    <div class="workspace">
+
         <aside class="sidebar">
-            <div class="sidebar-header">
-                Folders
-            </div>
+            <div class="sidebar-header">Explorer</div>
             <ul class="tree" id="sidebarTree"></ul>
         </aside>
 
-        <!-- Editor Panel -->
+        <aside class="note-panel">
+            <div class="note-panel-header">Notes</div>
+            <ul id="noteListPanel"></ul>
+        </aside>
+
         <main class="editor">
 
-            <!-- Title -->
             <input type="text" id="noteTitle" class="note-title" placeholder="Untitled Note">
 
-            <!-- Toolbar -->
             <div class="toolbar">
+                <button data-command="bold">Bold</button>
+                <button data-command="italic">Italic</button>
+                <button data-command="underline">Underline</button>
 
-                <!-- Text Style -->
-                <button data-command="bold" title="Bold (Ctrl+B)">Bold</button>
-                <button data-command="italic" title="Italic (Ctrl+I)">Italic</button>
-                <button data-command="underline" title="Underline">Underline</button>
                 <div class="toolbar-divider"></div>
-                <select id="headingSelect" class="heading-select" title="Heading">
+
+                <select id="headingSelect" class="heading-select">
                     <option value="p">Paragraph</option>
                     <option value="h1">Heading 1</option>
                     <option value="h2">Heading 2</option>
@@ -57,33 +54,71 @@
                     <option value="h5">Heading 5</option>
                     <option value="h6">Heading 6</option>
                 </select>
+
                 <div class="toolbar-divider"></div>
-                <button data-command="insertUnorderedList" title="Bullet List">Bullet List</button>
-                <button data-command="insertOrderedList" title="Numbered List">Numbered List</button>
+
+                <button data-command="insertUnorderedList">Bullet</button>
+                <button data-command="insertOrderedList">Numbered</button>
+
                 <div class="toolbar-divider"></div>
-                <button data-command="formatBlock" data-value="blockquote" title="Quote">Quote</button>
-                <button data-command="formatBlock" data-value="pre" title="Code Block">Code Block</button>
+
+                <button data-command="formatBlock" data-value="blockquote">Quote</button>
+                <button data-command="formatBlock" data-value="pre">Code</button>
+
                 <div class="toolbar-divider"></div>
-                <button data-command="justifyLeft" title="Align Left">Align Left</button>
-                <button data-command="justifyCenter" title="Align Center">Align Center</button>
-                <button data-command="justifyRight" title="Align Right">Align Right</button>
+
+                <button data-command="justifyLeft">Left</button>
+                <button data-command="justifyCenter">Center</button>
+                <button data-command="justifyRight">Right</button>
+
                 <div class="toolbar-divider"></div>
-                <button id="linkBtn" title="Insert Link">Insert Link</button>
-                <button data-command="removeFormat" title="Clear Formatting">Clear Format</button>
+
+                <button id="linkBtn">Link</button>
+                <button data-command="removeFormat">Clear</button>
 
             </div>
 
-            <!-- Editable Area -->
             <div id="editorContent" class="editor-content" contenteditable="true"></div>
 
-            <!-- Timestamp -->
             <div class="timestamp">
                 <span id="saveStatus">Saved</span> |
                 <span id="timestamp">Last edited: --</span>
             </div>
 
         </main>
+    </div>
 
+    <div id="modalOverlay" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 id="modalTitle">Create Folder</h3>
+            <input type="text" id="modalInput" placeholder="Enter name...">
+            <div class="modal-actions">
+                <button class="btn-secondary" id="modalCancel">Cancel</button>
+                <button class="btn-primary" id="modalConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteOverlay" class="modal-overlay hidden">
+        <div class="modal delete-modal">
+            <h3>Are you sure?</h3>
+            <p>This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="deleteCancel">Cancel</button>
+                <button class="btn-danger" id="deleteConfirm">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="renameOverlay" class="modal-overlay hidden">
+    <div class="modal">
+        <h3>Rename</h3>
+        <input type="text" id="renameInput" placeholder="Enter new name...">
+        <div class="modal-actions">
+            <button class="btn-secondary" id="renameCancel">Cancel</button>
+            <button class="btn-primary" id="renameConfirm">Save</button>
+        </div>
+    </div>
     </div>
 
     <script src="js/app.js"></script>
