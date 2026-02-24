@@ -29,12 +29,6 @@ This project allows users to create, edit, and organize notes in a folder and su
 
 ---
 
-### Rich Text Editor
-
-![Editor](assets/screenshots/editor.png)
-
----
-
 ### Drag & Drop Organization
 
 ![Drag and Drop](assets/screenshots/drag-drop.png)
