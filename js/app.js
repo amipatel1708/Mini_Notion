@@ -947,16 +947,10 @@ createFolderBtn.addEventListener("click", function (e) {
     openFolderModal();
 });
 
-/* ===============================
-   KEYBOARD SHORTCUTS
-=================================*/
-
 document.addEventListener("keydown", function (e) {
 
     if (!appState.selectedNoteId) return;
 
-    // Windows: ctrlKey
-    // Mac: metaKey (⌘)
     const isCtrl = e.ctrlKey || e.metaKey;
 
     if (!isCtrl) return;
