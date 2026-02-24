@@ -5,7 +5,6 @@ let appState = {
 };
 
 let saveTimeout = null;
-let userClickedFolder = false;
 
 const STORAGE_KEY = "miniNotionData";
 
@@ -36,6 +35,10 @@ const renameOverlay = document.getElementById("renameOverlay");
 const renameInput = document.getElementById("renameInput");
 const renameConfirm = document.getElementById("renameConfirm");
 const renameCancel = document.getElementById("renameCancel");
+
+const exportBtn = document.getElementById("exportBtn");
+const importBtn = document.getElementById("importBtn");
+const importFile = document.getElementById("importFile");
 
 function debounceSave(callback, delay = 500) {
     if (saveTimeout) clearTimeout(saveTimeout);
@@ -81,25 +84,20 @@ function findFolderById(folder, id) {
 function removeFolderById(parentFolder, folderId) {
     for (let i = 0; i < parentFolder.children.length; i++) {
         const child = parentFolder.children[i];
-
         if (child.type === "folder" && child.id === folderId) {
             parentFolder.children.splice(i, 1);
             return true;
         }
-
         if (child.type === "folder") {
             const removed = removeFolderById(child, folderId);
             if (removed) return true;
         }
     }
-
     return false;
 }
 
-
 function loadAppState() {
     const savedData = localStorage.getItem(STORAGE_KEY);
-
     if (savedData) {
         try {
             appState = JSON.parse(savedData);
@@ -132,7 +130,6 @@ function renderSidebar(searchTerm = "") {
 }
 
 function renderTree(folder, parentElement, searchTerm = "") {
-
     folder.children.forEach(child => {
 
         if (child.type === "folder") {
@@ -149,30 +146,23 @@ function renderTree(folder, parentElement, searchTerm = "") {
             const hasChildren = child.children.length > 0;
 
             folderDiv.innerHTML = `
-                <span class="arrow ${!hasChildren ? "empty" : ""}">
-                    ${
-                        hasChildren
-                            ? `<img src="assets/icons/${child.expanded ? "down-arrow.png" : "arrow.png"}" class="arrow-icon" />`
-                            : ""
-                    }
+                <span class="arrow">
+                    <img src="assets/icons/${child.expanded ? "down-arrow.png" : "arrow.png"}" class="arrow-icon" width="12"/>
                 </span>
                 <img src="assets/icons/folder.png" class="icon" />
                 <span class="label">${child.name}</span>
             `;
 
-            folderDiv.addEventListener("click", function () {
+            folderDiv.addEventListener("click", function (e) {
+
+                e.stopPropagation();
 
                 appState.selectedFolderId = child.id;
                 appState.selectedNoteId = null;
-                userClickedFolder = true;
 
                 child.expanded = !child.expanded;
 
-                editorContent.innerHTML =
-                    "<p style='color:#9ca3af;'>Select or create a note to start writing...</p>";
-                editorContent.contentEditable = "false";
-                noteTitleInput.value = "";
-                noteTitleInput.disabled = true;
+                sidebarTree.classList.remove("root-active");
 
                 renderSidebar(searchTerm);
             });
@@ -314,7 +304,6 @@ function folderHasMatch(folder, searchTerm) {
     });
 }
 
-
 function openFolderModal() {
     modalOverlay.classList.remove("hidden");
     modalInput.value = "";
@@ -439,33 +428,154 @@ function deleteItem() {
 }
 
 function renameItem() {
-
     let currentName = "";
 
     if (appState.selectedNoteId) {
-
         const note = findNoteById(appState.root, appState.selectedNoteId);
         if (!note) return;
-
         currentName = note.title;
-
     } else if (
         appState.selectedFolderId &&
         appState.selectedFolderId !== appState.root.id
     ) {
-
         const folder = findFolderById(appState.root, appState.selectedFolderId);
         if (!folder) return;
-
         currentName = folder.name;
-
     } else {
         return;
     }
-
     renameInput.value = currentName;
     renameOverlay.classList.remove("hidden");
     renameInput.focus();
+}
+
+function exportData() {
+    try {
+        const dataStr = JSON.stringify(appState, null, 2);
+        const blob = new Blob([dataStr], { type: "application/json" });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+
+        const date = new Date().toISOString().split("T")[0];
+        a.href = url;
+        a.download = `mini-notion-backup-${date}.json`;
+
+        document.body.appendChild(a);
+        a.click();
+
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert("Backup exported successfully!");
+    } catch (error) {
+        alert("Export failed.");
+        console.error(error);
+    }
+}
+
+function collectAllIds(folder, idSet = new Set()) {
+    idSet.add(folder.id);
+    folder.children.forEach(child => {
+        idSet.add(child.id);
+        if (child.type === "folder") {
+            collectAllIds(child, idSet);
+        }
+    });
+    return idSet;
+}
+
+function generateUniqueName(parentFolder, baseName, type) {
+    let counter = 1;
+    let newName = baseName;
+
+    while (parentFolder.children.some(child =>
+        child.type === type &&
+        ((type === "folder" && child.name === newName) ||
+         (type === "note" && child.title === newName))
+    )) {
+        newName = `${baseName} (${counter})`;
+        counter++;
+    }
+    return newName;
+}
+
+function smartMergeFolders(targetFolder, importedFolder, existingIds) {
+
+    importedFolder.children.forEach(importedChild => {
+
+        const newChild = JSON.parse(JSON.stringify(importedChild));
+
+        if (existingIds.has(newChild.id)) {
+            newChild.id = generateId();
+        }
+
+        existingIds.add(newChild.id);
+
+        if (newChild.type === "folder") {
+            newChild.name = generateUniqueName(
+                targetFolder,
+                newChild.name,
+                "folder"
+            );
+            fixChildrenIds(newChild, existingIds);
+            targetFolder.children.push(newChild);
+
+        } else if (newChild.type === "note") {
+            newChild.title = generateUniqueName(
+                targetFolder,
+                newChild.title,
+                "note"
+            );
+            targetFolder.children.push(newChild);
+        }
+    });
+}
+
+function fixChildrenIds(folder, existingIds) {
+
+    folder.children.forEach(child => {
+
+        if (existingIds.has(child.id)) {
+            child.id = generateId();
+        }
+
+        existingIds.add(child.id);
+
+        if (child.type === "folder") {
+            fixChildrenIds(child, existingIds);
+        }
+    });
+}
+
+function importData(file) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        try {
+            const parsedData = JSON.parse(event.target.result);
+            if (!parsedData.root || !parsedData.root.children) {
+                alert("Invalid backup file.");
+                return;
+            }
+            const confirmImport = confirm(
+                "Smart Merge will combine imported data with current data. Continue?"
+            );
+
+            if (!confirmImport) return;
+            const existingIds = collectAllIds(appState.root);
+
+            smartMergeFolders(appState.root, parsedData.root, existingIds);
+            saveAppState();
+            renderSidebar();
+
+            alert("Smart Merge Import completed successfully!");
+
+        } catch (error) {
+            alert("Invalid JSON file.");
+            console.error(error);
+        }
+    };
+    reader.readAsText(file);
 }
 
 function updateToolbarState() {
@@ -493,6 +603,32 @@ function updateToolbarState() {
     if (document.queryCommandState("insertOrderedList"))
         document.querySelector('[data-command="insertOrderedList"]')?.classList.add("active");
 
+    if (document.queryCommandState("justifyLeft"))
+        document.querySelector('[data-command="justifyLeft"]')?.classList.add("active");
+
+    if (document.queryCommandState("justifyCenter"))
+        document.querySelector('[data-command="justifyCenter"]')?.classList.add("active");
+
+    if (document.queryCommandState("justifyRight"))
+        document.querySelector('[data-command="justifyRight"]')?.classList.add("active");
+
+    if (document.queryCommandState("link"))
+        document.querySelector('[data-command="link"]')?.classList.add("active");
+
+    const selection = window.getSelection();
+
+    if (selection.rangeCount > 0) {
+        let node = selection.anchorNode;
+
+        while (node) {
+            if (node.nodeType === 1 && node.tagName === "A") {
+                document.getElementById("linkBtn")?.classList.add("active");
+                break;
+            }
+            node = node.parentNode;
+        }
+    }
+
     const currentBlock = document.queryCommandValue("formatBlock");
 
     if (currentBlock) {
@@ -515,6 +651,16 @@ function updateToolbarState() {
     }
 }
 
+document.querySelector(".sidebar").addEventListener("click", function (e) {
+
+    if (e.target === e.currentTarget) {
+
+        appState.selectedFolderId = appState.root.id;
+        appState.selectedNoteId = null;
+
+        renderSidebar();
+    }
+});
 
 editorContent.addEventListener("click", function (e) {
     if (!appState.selectedNoteId) return;
@@ -534,9 +680,21 @@ toolbarButtons.forEach(button => {
         const value = this.dataset.value;
 
         if (command === "removeFormat") {
+
+            if (document.queryCommandState("insertOrderedList")) {
+                document.execCommand("insertOrderedList", false, null);
+            }
+
+            if (document.queryCommandState("insertUnorderedList")) {
+                document.execCommand("insertUnorderedList", false, null);
+            }
+
             document.execCommand("removeFormat", false, null);
+
             document.execCommand("formatBlock", false, "p");
+
             document.execCommand("justifyLeft", false, null);
+
             editorContent.focus();
             updateToolbarState();
             return;
@@ -629,6 +787,21 @@ document.addEventListener("selectionchange", function () {
     }
 });
 
+exportBtn.addEventListener("click", exportData);
+
+importBtn.addEventListener("click", function () {
+    importFile.click();
+});
+
+importFile.addEventListener("change", function () {
+    const file = importFile.files[0];
+    if (!file) return;
+
+    importData(file);
+
+    importFile.value = "";
+});
+
 deleteBtn.onclick = () => {
     if (!appState.selectedNoteId &&
         (!appState.selectedFolderId || appState.selectedFolderId === appState.root.id)) {
@@ -689,20 +862,14 @@ modalCancel.onclick = () => {
 };
 
 modalConfirm.onclick = () => {
+
     const folderName = modalInput.value.trim();
     if (!folderName) return;
 
-    let parentFolder;
-
-    if (
-        userClickedFolder &&
-        appState.selectedFolderId &&
-        appState.selectedFolderId !== appState.root.id
-    ) {
-        parentFolder = findFolderById(appState.root, appState.selectedFolderId);
-    } else {
-        parentFolder = appState.root;
-    }
+    const parentFolder = findFolderById(
+        appState.root,
+        appState.selectedFolderId || appState.root.id
+    );
 
     parentFolder.children.push({
         id: generateId(),
@@ -712,8 +879,6 @@ modalConfirm.onclick = () => {
         children: []
     });
 
-    userClickedFolder = false;
-
     saveAppState();
     renderSidebar();
 
@@ -721,31 +886,10 @@ modalConfirm.onclick = () => {
 };
 
 createFolderBtn.addEventListener("click", function (e) {
-
-    if (e.shiftKey) {
-        userClickedFolder = false;
-        appState.selectedFolderId = appState.root.id;
-    }
-
     openFolderModal();
 });
 
-sidebarTree.addEventListener("click", function (e) {
-
-    if (e.target === sidebarTree) {
-
-        appState.selectedFolderId = appState.root.id;
-        appState.selectedNoteId = null;
-
-        userClickedFolder = false;
-
-        renderSidebar();
-    }
-});
-
-
 function initializeApp() {
-
     loadAppState();
     renderSidebar();
 

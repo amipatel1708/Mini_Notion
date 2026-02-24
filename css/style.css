@@ -65,6 +65,24 @@ body {
     outline: none;
 }
 
+.actions button#exportBtn {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    border: none;
+    color: white;
+}
+
+.actions button#importBtn {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    border: none;
+    color: white;
+}
+
+.actions button#exportBtn:hover,
+.actions button#importBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
 .workspace {
     flex: 1;
     display: grid;
