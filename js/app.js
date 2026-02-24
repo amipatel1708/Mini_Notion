@@ -40,6 +40,23 @@ const exportBtn = document.getElementById("exportBtn");
 const importBtn = document.getElementById("importBtn");
 const importFile = document.getElementById("importFile");
 
+const toastContainer = document.getElementById("toastContainer");
+
+function showToast(message, type = "info") {
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add("hide");
+        setTimeout(() => {
+            toast.remove();
+        }, 400);
+    }, 3000);
+}
+
 function debounceSave(callback, delay = 500) {
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(callback, delay);
@@ -367,10 +384,6 @@ function openNote(note) {
 function createNote() {
 
     const parentFolder = findFolderById(appState.root, appState.selectedFolderId);
-    if (!parentFolder) {
-        alert("Please select a folder first.");
-        return;
-    }
 
     const newNote = {
         id: generateId(),
@@ -388,6 +401,8 @@ function createNote() {
     saveAppState();
     renderSidebar();
     openNote(newNote);
+
+    showToast("Note created successfully!", "success");
 }
 
 function deleteItem() {
@@ -467,9 +482,9 @@ function exportData() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        alert("Backup exported successfully!");
+        showToast("Backup exported successfully!", "success");
     } catch (error) {
-        alert("Export failed.");
+        showToast("Export failed.", "error");
         console.error(error);
     }
 }
@@ -554,7 +569,7 @@ function importData(file) {
         try {
             const parsedData = JSON.parse(event.target.result);
             if (!parsedData.root || !parsedData.root.children) {
-                alert("Invalid backup file.");
+                showToast("Invalid backup file.", "error");
                 return;
             }
             const confirmImport = confirm(
@@ -568,10 +583,10 @@ function importData(file) {
             saveAppState();
             renderSidebar();
 
-            alert("Smart Merge Import completed successfully!");
+            showToast("Import completed successfully!", "success");
 
         } catch (error) {
-            alert("Invalid JSON file.");
+            showToast("Invalid JSON file.", "error");
             console.error(error);
         }
     };
@@ -820,7 +835,24 @@ deleteConfirm.onclick = () => {
     }
     deleteOverlay.classList.add("hidden");
     deleteItem();
+
+    showToast("Deleted successfully!", "error");
 };
+
+document.addEventListener("keydown", function (e) {
+
+    if (deleteOverlay.classList.contains("hidden")) return;
+
+    if (e.key === "Enter") {
+        e.preventDefault();
+        deleteConfirm.click();
+    }
+
+    if (e.key === "Escape") {
+        e.preventDefault();
+        deleteOverlay.classList.add("hidden");
+    }
+});
 
 renameConfirm.onclick = () => {
 
@@ -850,6 +882,7 @@ renameConfirm.onclick = () => {
     saveAppState();
     renderSidebar();
 
+    showToast("Renamed successfully!", "success");
     renameOverlay.classList.add("hidden");
 };
 
@@ -882,11 +915,151 @@ modalConfirm.onclick = () => {
     saveAppState();
     renderSidebar();
 
+    showToast("Folder created successfully!", "success");
     modalOverlay.classList.add("hidden");
 };
 
+modalInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        modalConfirm.click();
+    }
+
+    if (e.key === "Escape") {
+        e.preventDefault();
+        modalOverlay.classList.add("hidden");
+    }
+});
+
+renameInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        renameConfirm.click();
+    }
+
+    if (e.key === "Escape") {
+        e.preventDefault();
+        renameOverlay.classList.add("hidden");
+    }
+});
+
 createFolderBtn.addEventListener("click", function (e) {
     openFolderModal();
+});
+
+/* ===============================
+   KEYBOARD SHORTCUTS
+=================================*/
+
+document.addEventListener("keydown", function (e) {
+
+    if (!appState.selectedNoteId) return;
+
+    // Windows: ctrlKey
+    // Mac: metaKey (⌘)
+    const isCtrl = e.ctrlKey || e.metaKey;
+
+    if (!isCtrl) return;
+
+    switch (true) {
+
+        // CTRL + B → Bold
+        case e.key.toLowerCase() === "b":
+            e.preventDefault();
+            document.execCommand("bold");
+            editorContent.focus();
+            break;
+
+        // CTRL + I → Italic
+        case e.key.toLowerCase() === "i":
+            e.preventDefault();
+            document.execCommand("italic");
+            editorContent.focus();
+            break;
+
+        // CTRL + U → Underline
+        case e.key.toLowerCase() === "u":
+            e.preventDefault();
+            document.execCommand("underline");
+            editorContent.focus();
+            break;
+
+        // CTRL + 1 → H1
+        case e.key === "1":
+            e.preventDefault();
+            document.execCommand("formatBlock", false, "h1");
+            editorContent.focus();
+            break;
+
+        // CTRL + 2 → H2
+        case e.key === "2":
+            e.preventDefault();
+            document.execCommand("formatBlock", false, "h2");
+            editorContent.focus();
+            break;
+
+        // CTRL + 3 → H3
+        case e.key === "3":
+            e.preventDefault();
+            document.execCommand("formatBlock", false, "h3");
+            editorContent.focus();
+            break;
+
+        // CTRL + 4 → H4
+        case e.key === "4":
+            e.preventDefault();
+            document.execCommand("formatBlock", false, "h4");
+            editorContent.focus();
+            break;
+
+        // CTRL + 5 → H5
+        case e.key === "5":
+            e.preventDefault();
+            document.execCommand("formatBlock", false, "h5");
+            editorContent.focus();
+            break;
+
+        // CTRL + 6 → H6
+        case e.key === "6":
+            e.preventDefault();
+            document.execCommand("formatBlock", false, "h6");
+            editorContent.focus();
+            break;
+
+        // CTRL + ` → Code Block
+        case e.key === "`":
+            e.preventDefault();
+            document.execCommand("formatBlock", false, "pre");
+            editorContent.focus();
+            break;
+
+        // CTRL + SHIFT + Q → Quote
+        case e.shiftKey && e.key.toLowerCase() === "q":
+            e.preventDefault();
+            document.execCommand("formatBlock", false, "blockquote");
+            editorContent.focus();
+            break;
+
+        // CTRL + K → Link
+        case e.key.toLowerCase() === "k":
+            e.preventDefault();
+            const url = prompt("Enter URL:");
+            if (url) {
+                document.execCommand("createLink", false, url);
+            }
+            editorContent.focus();
+            break;
+
+        // CTRL + SHIFT + C → Clear Formatting
+        case e.shiftKey && e.key.toLowerCase() === "c":
+            e.preventDefault();
+            document.execCommand("removeFormat");
+            document.execCommand("formatBlock", false, "p");
+            editorContent.focus();
+            break;
+    }
+    editorContent.focus();
+    updateToolbarState();
 });
 
 function initializeApp() {
